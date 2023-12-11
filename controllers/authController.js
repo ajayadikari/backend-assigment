@@ -101,7 +101,10 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { email, password, isSeller } = req.body;
+        const { email, password } = req.body;
+        let {isSeller} = req.body
+        if(isSeller === undefined) isSeller = false
+        console.log(isSeller)
         if (!email) {
             res.status(400).json({
                 success: false,
@@ -117,6 +120,14 @@ const login = async (req, res) => {
         let user = {}
         if (isSeller) user = await Seller.findOne({ email: email })
         else user = await Customer.findOne({ email: email })
+
+        if(!user){
+            res.status(500).json({
+                success: false, 
+                message: "user not found, please register"
+            })
+        }
+
         const verify = await bcrypt.compare(password, user.password)
         if (!verify) {
             res.status(500).json({
